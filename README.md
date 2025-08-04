@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # AI_ML-Project
 AI/ML learning Journey- Data Analysis, ML Models, and Time-Series Forecasting
 =======
@@ -76,4 +75,3 @@ Each month, I completed a **mini project** focusing on key concepts, tools, and 
 ---
 
 ## **Repository Structure**
->>>>>>> 8c87a54 (Initial commit)
