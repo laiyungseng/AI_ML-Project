@@ -79,7 +79,7 @@ Electricity Price (price actual)
 ## 📈 Visualization
 Actual vs Predicted (All Models)
 
-![Model performance](https://github.com/laiyungseng/AI_ML-Project.git/Month4_Model_Evaluation/3model forecast plot.png)
+![Model performance](https://github.com/laiyungseng/AI_ML-Project.git/Month4_Model Evaluation/3model forecast plot.png)
 
 
 ## ✅ Key Insights & Conclusion
