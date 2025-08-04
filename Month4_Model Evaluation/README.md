@@ -64,8 +64,8 @@ Electricity Price (price actual)
 
 ## 📊 Model Evaluation Metrics
 
-*Model Evaluation Metrics*
-```
+**Model Evaluation Metrics**
+
 | Model                 | RMSE     | MAE      | R²       | Duration (s) |
 |-----------------------|----------|----------|----------|--------------|
 | Persistence           | 3.66068  | 13.40056 | 0.93358  | 0.01191      |
@@ -74,13 +74,13 @@ Electricity Price (price actual)
 | LSTM                  | 2.69008  | 1.88522  | 0.94606  | 84.00867     |
 | LSTM (Optuna)         | 21.21086 | 19.97095 | -2.36108 | 678.86769    |
 | TFT                   | 2.90478  | 2.43727  | 0.80552  | 1783.11225   |
-```
+
 
 ## 📈 Visualization
 
 *Actual vs Predicted (All Models)*
 
-Model Evaluation Results
+**Model Evaluation Results**
 
 <img width="1009" height="448" alt="Image" src="https://github.com/user-attachments/assets/4f32e6b1-a1bb-44d8-84e7-fee9f92c235c" />
 
