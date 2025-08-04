@@ -78,10 +78,9 @@ Electricity Price (price actual)
 
 ## 📈 Visualization
 Actual vs Predicted (All Models)
-```markdown
-![Model performance](3model forecast plot.png)
 
-```
+![Model performance](https://github.com/laiyungseng/AI_ML-Project.git/Month4_Model_Evaluation/3model forecast plot.png)
+
 
 ## ✅ Key Insights & Conclusion
 Best Performer: Optimized XGBoost delivered the best RMSE (2.80) and shortest training time among advanced models.
