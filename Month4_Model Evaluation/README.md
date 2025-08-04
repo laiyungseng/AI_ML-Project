@@ -112,8 +112,8 @@ Deploy model via FastAPI + Docker
 ## 🚀 How to Run
 ```
 # Clone repository
-git clone https://github.com/yourusername/Electricity_Forecasting_Transformer.git
-cd Electricity_Forecasting_Transformer
+git clone https://github.com/yourusername/Electricity_Forecasting_Transformer.git](https://github.com/laiyungseng/AI_ML-Project.git
+cd Month4_Model Evaluation
 
 # Install dependencies
 pip install -r requirements.txt
