@@ -102,16 +102,30 @@ DataSciencePortfolio/
 
 Create a `.env` file with:
 ```env
-MODEL_PATH=./Server/model
-DATA_PATH=./Server/document
-PLOT_PATH=./Server/plot_figure
-#local
-LLM_model = "granite3.2-vision:2b",
+#if using linux or docker
+#replace *C:\Users\PC\Desktop\program\DataSciencePortfolio => .
+#filepath configuration
+XGBMfilepath1 =C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\model\XGBModel.pkl
+XGBMfilepath2 =C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\model\XGBModel.json
+datasetfilepath= C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\document\energy_pd_clean.csv
+client_storage = C:\Users\PC\Desktop\program\DataSciencePortfolio\client-document\energy_pd_clean2.csv
+plot_filepath = C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\plot_figure\
+img_filepath = C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\plot_figure\heatmap.json
+template_filepath = C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\Prompttemplate.json
+openaimodellist = C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\openaimodellist.json
+openroutermodelist = C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\openrouterlist.json
+
+#Local LLM configuration
+LLM_model = "" #granite3.2-vision:2b
 LLM_API_KEY = ""
-#openai
+
+
+#OpenAI configurati0on
 OpenAI_model=''
 OpenAI_API_KEY=''
-#openrouter
+
+
+#OpenRouter configuration
 OpenRouter_model=''
 OpenRouter_API_KEY=''
 ```
