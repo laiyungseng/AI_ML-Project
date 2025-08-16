@@ -76,14 +76,24 @@ streamlit run main.py
 DataSciencePortfolio/
 ├── api_function.py      # API endpoints and ML functions
 ├── call_function.py     # Client-side function calls
-├── LLMmodel.py         # LLM integration
+├── llm_model.py         # LLM integration
 ├── main.py             # Application entry point
 ├── model_file.py       # ML model definitions
 ├── client-document/    # Client data storage
+|   ├── energy_pd_clean2.csv #client dataset
 ├── Server/             # Server resources
 │   ├── document/      # Datasets
+|   |   ├── cat_y_m.csv
+|   |   └── energy_pd_clean.csv
 │   ├── model/        # Trained models
-│   └── plot_figure/  # Visualizations
+|   |  ├── XGBModel.pkl
+|   |  └── XGBModel.json
+│   ├── plot_figure/  # Visualizations
+|   |  ├── forecast.json
+|   |  └── heatmap.json
+|   ├── Prompttemplate.json
+|   ├── openaimodellist.json
+|   └── openrouterlist.json
 └── requirements.txt    # Project dependencies
 ```
 
