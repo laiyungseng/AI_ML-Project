@@ -6,3 +6,5 @@ class PredictResponse(BaseModel):
     y_pred: List[float]
     EM: List[float]
   
+class MissingAPIKeyError(Exception):
+    pass

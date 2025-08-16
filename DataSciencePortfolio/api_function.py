@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, FileResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, FileResponse,StreamingResponse
 import os, requests, uvicorn, dotenv,model_file,subprocess, asyncio, joblib, pickle, plotly.io.kaleido, json
 from dotenv import load_dotenv, get_key, dotenv_values
 from typing import Optional
@@ -12,6 +12,7 @@ import xgboost as xgb
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, root_mean_squared_error,r2_score
+import seaborn as sns
 
 #################################################################################################################
 
@@ -21,24 +22,24 @@ app= FastAPI()
 #Load environment variables
 dotenv.load_dotenv(dotenv.find_dotenv())
 #get file paths from environment variables
-XGBMfilepath = os.getenv("XGBMfilepath")
+XGBMfilepath1 = os.getenv("XGBMfilepath1")
+XGBMfilepath2 = os.getenv("XGBMfilepath2")
 datasetfilepath = os.getenv("datasetfilepath")
 
 @app.get("/download_data/{filename}")
-def download_data(filename:str):
+def download_data(filename:str,serverdatapath:str):
     '''
     Function to download the dataset from local to API
 
     Args:
         filename (str): name of the dataset file
+        Serverdatapath (str): Server directory of the dataset
     Returns:
         None (str): return contain of the dataset.
     '''
-    datasetfilepath = r"C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\document\energy_pd_clean.csv"
-
-    if os.path.exists(datasetfilepath):
+    if os.path.exists(serverdatapath):
         return FileResponse(
-            path=datasetfilepath,
+            path=serverdatapath,
             media_type='text/csv',
             filename=filename
         )
@@ -76,31 +77,32 @@ def load_data(datasetfilepath:str):
     return df
  
 #load mode
-def load_model(XGBMfilepath:str):
+def load_model(XGBMfilepath1:str, XGBMfilepath2:str):
     '''Function to load the XGBoost model from pkl
     Args:
-        XGMBfilepath (str): Path to the XGBoost model file
+        XGMBfilepath1 (str): Path to the XGBoost model file pkl
+        XGMBfilepath2 (str): Path to the XGBoost model file json
     Returns:
         booster (xgboost.Booster): loaded XGBoost model
     '''
     #load XGBoost model
-    model = joblib.load(XGBMfilepath)
+    model = joblib.load(XGBMfilepath1)
     if xgb.__version__ <= '3.0.2':
-        if not os.path.exists(r"C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\model\XGBmodel.json"):
+        if not os.path.exists(XGBMfilepath2):
             print("No model.json found, converting model from old version to new version")
             try:
                 # convert model to last version from xgboost, original version is 3.0.2
                 reverted_lib = subprocess.run(['uv', 'remove', 'xgboost', '-y'],check=True, capture_output=True, text=True)
                 convert_lib = subprocess.run(['uv','add', 'xgboost==3.0.2'], check=True, capture_output=True, text=True)
                 booster = model.get_booster()
-                booster.save_model(r"C:\Users\PC\Desktop\program\DataSciencePortfolio\model\XGBmodel.json")
-                if os.path.exists(r"C:\Users\PC\Desktop\program\DataSciencePortfolio\model\XGBmodel.json"):
+                booster.save_model(XGBMfilepath2)
+                if os.path.exists(XGBMfilepath2):
                     update_lib = subprocess.run(['uv', 'add', '--upgrade','xgboost'],check=True, capture_output=True, text=True)
             except (AttributeError, ImportError, Exception) as e:
                 print(f"Error converting model: {e}")
         #load model from json
         booster = xgb.Booster()
-        booster.load_model(r"C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\model\XGBmodel.json")
+        booster.load_model(XGBMfilepath2)
     else:
         booster = model
     return booster
@@ -154,7 +156,6 @@ def plot_pred_graph(X, X_train, y_train, y_test,y_pred):
     plt.legend()
     plt.show()
 
-
 # Evaluation Metrics (e.g., RMSE, MAE, R2_score)
 def EvaluationMetrics(y_test, y_pred):
     """
@@ -192,18 +193,19 @@ def safe_convert(obj):
 
 #load dataset, mode, and make predictions with graphs and evaluation metrics
 @app.get("/loadpred", response_model=model_file.PredictResponse)
-def load_and_predict():
+def load_and_predict(serverfilepath:str, XGBMfilepath1:str, XGBMfilepath2:str):
     '''
     Function to load the model and make predictions
 
     Args:
-        df (pd.DataFrame): DataFrame containing the features and target variable
+        serverfilepath (str): ServerDirectory for dataset.
+        XGBMfilepath1 (str): XGB model pkl file
+        XGBMfilepath2 (str): XGB model json file
     Returns:
         None: Displays plot of actual vs predicted values and prints evaluation metrics.
     '''
-    df = load_data(datasetfilepath)
-    modelfilepath = XGBMfilepath
-    model = load_model(XGBMfilepath=modelfilepath)
+    df = load_data(serverfilepath)
+    model = load_model(XGBMfilepath1,XGBMfilepath2)
     var = XGBoostpred(df=df, booster=model)
     Evametrics=EvaluationMetrics(y_test=var[4], y_pred=var[0])
    
@@ -214,34 +216,16 @@ def load_and_predict():
 
     return output
 
-#convert figure plot from json format to png
-#save in local path folder "plot_figure"
-@app.post("/llmconvert")
-async def llmprocess(request:Request):
-    '''
-    Function to convert figure in Json format to PNG through Kalido library.
-    Save the image to plot_figure folder in root directory
-    Args:
-        request (Request): Receive data from request.
-    Returns:
-        Status (str): status of succesffuly saved the image in JSON Format
-    '''
-    data = await request.json()
-    fig_json = data['fig']
-    fig = pio.from_json(fig_json)
-    img=pio.write_image(fig, file=r'C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\plot_figure\figure.png', format='png' )
-    return {"status": "figure saved"}
-
 async def out_predict():
     df= load_data(datasetfilepath=datasetfilepath)
-    model = load_model(XGBMfilepath=XGBMfilepath)
+    model = load_model(XGBMfilepath1,XGBMfilepath2)
     var = XGBoostpred(df=df, booster=model)
     RMSE, MAE, R2_score = EvaluationMetrics(y_test=var[4], y_pred=var[0])
     return {'RMSE':RMSE, 'MAE':MAE, 'R2_score':R2_score}, var
 
 @app.get("/modellist/openrouter")
 #api calling to openrouter for retreiving all model lists.
-def get_model_list():
+def get_model_list(openroutermodellist:str=os.getenv("openroutermodelist")):
     modellists=[]
     try:
         list_model = requests.get(
@@ -249,11 +233,11 @@ def get_model_list():
             headers={}, timeout=10
         )
         print(f"request status: {list_model.status_code}")
-        with open(r"C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\openrouterlist.json",'r') as f:
+        with open(openroutermodellist,'r') as f:
             model_details = json.load(f)
         if len(model_details['data']) < len(list_model.json()['data']):
             print("Update json file...")
-            with open(r"C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\openrouterlist.json", 'w') as f:
+            with open(openroutermodellist, 'w') as f:
                 json.dump(list_model.json(), f, indent=2)
             model_details=list_model.json()
         for item in range(len(model_details['data'])):
@@ -266,7 +250,7 @@ def get_model_list():
     except requests.exceptions.Timeout as e:
         print(f"TimeoutError: {e}")
         print("Retrieve from backup....")
-        with open(r"C:\Users\PC\Desktop\program\DataSciencePortfolio\Server\openrouterlist.json",'r') as f:
+        with open(openroutermodellist,'r') as f:
             model_details=json.load(f)
         print(len(model_details['data']))
         for item in range(len(model_details['data'])):
@@ -281,6 +265,7 @@ def get_model_list():
         print(f"Error: {e}")
     return modellists
 
+#update model in environment
 @app.get("/env/updatemodel")
 #update model and apikey in environment file for chatgpt and openrouter
 def environmentupdate(model:str,selected_service:str, dotenv_file:Optional[str]='.env'):
@@ -320,6 +305,7 @@ def environmentupdate(model:str,selected_service:str, dotenv_file:Optional[str]=
         else:
             return 'No model file'
 
+#update apikey in environment file
 @app.get("/env/updateAPIkey")
 def updateenvAPIkey(apikey:str, selected_service:str, dotenv_file:Optional[str]='.env'):
     """
@@ -358,7 +344,53 @@ def updateenvAPIkey(apikey:str, selected_service:str, dotenv_file:Optional[str]=
             return {"OpenRouter_API_KEY": os.environ[default_api_key]}
         else:
             return 'No model file'
+
+#get base64 image
+@app.post("/image/base64")
+async def receive_base64(request:Request, plotfilepath:str):
+    data = await request.json()
+    fig_json = data["fig"]
+    img_name=data["img_name"]
+    with open(f'{plotfilepath}+{img_name}.json', 'w', encoding='utf-8') as f:
+        json.dump(data,f, indent=2)
+    return {'status': 200, 'image_name': img_name, 'img2base64': fig_json}
+
+#get current model saved in environment file
+@app.get("/getmodel")
+def get_currentmodel(model:str):
+    """
+    function get current model from environment.
+    
+    Args:
+        model (str): service selected by user. (e.g.: OpenAI or OpenRouter)
+
+    Returns:
+        status_code & curr_mode (list): requese status code and current model saved in environment.
+    """
+    load_dotenv(override=True)
+    curr_model = os.environ[model+'_model']
+    return {"status": 200, "current_model":curr_model}
+
+#get current api saved in environment file
+@app.get("/getapi")
+def get_currentAPI(model:str):
+    """
+    Get current API from environment.
+
+    Args:
+        model (str): Selected model to collect the current API Key in the environment. (e.g.: OpenAI or OpenRouter)
+    
+    Returns:
+        status code & current_API (list): return request status code and current api
+    """
+    try:
+        load_dotenv(override=True)
+        curr_api = os.getenv(model+"_API_KEY")
+        return {"status": 200, "current_api":curr_api}
+    except ConnectionError as e:
+        assert {"status": 404, "Error description":e}
+
 ##run test api
 #fastapi dev C:\Users\PC\Desktop\program\DataSciencePortfolio\api.py
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port= 8000)
+    uvicorn.run(app, host="0.0.0.0", port= 8000)
