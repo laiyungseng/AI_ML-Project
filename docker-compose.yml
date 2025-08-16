@@ -1,0 +1,19 @@
+services:
+  api_function:
+    container_name: api1_containter
+    image: testingimage/api_function
+    ports: 
+      - "8000:8000"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python api_function.py
+  llm_model:
+    container_name: api2_container
+    image: testingimage/llm_model
+    ports: 
+      - "8001:8001"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python llm_model.py
