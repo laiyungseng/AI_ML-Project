@@ -248,7 +248,7 @@ async def graph():
                             input="Please provide me insight from the plot tell me what is the different between XGBoost prediction trend and price actual",
                             model_type= "openrouter",
                             template_path= os.getenv("template_filepath"),
-                            image_path = os.getenv("img_filepath"),
+                            image_path = os.getenv("plot_filepath"),
                             model=os.environ['OpenRouter_model'],
                             Evaluation_metrics= df_em_global
                         )

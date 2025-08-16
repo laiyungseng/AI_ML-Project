@@ -104,12 +104,22 @@ class LLM_Model():
         self.model_type = model_type
         self.template =self.load_template(template_path)
         self.input = input
-        self.image_path= self.encode_image2base64(image_path)
+        self.image_path= self.check_all_img(image_path)#insert plot_filepath
         self.model = model
         self.Evaluation_metrics= self.convert_df2str(Evaluation_metrics)["Evaluation_metrics"]
         self.Evaluation_metrics_key = self.convert_df2str(Evaluation_metrics)["Evaluation_metrics_key"]
         dotenv.load_dotenv(dotenv.find_dotenv(),override=True)
-
+    
+    #get all fig in plot filepath
+    def check_all_img(self, plot_filepath:str):
+        outputs=[]
+        contents=os.listdir(plot_filepath)
+        for content in contents:
+            with open(plot_filepath+content, "r") as f:
+                img64 = json.load(f)
+                output = {"type":"image_url", "image_url": {"url": f"data:image/png;base64,{img64['fig']}"}}
+                outputs.append(output)
+        return outputs
 
     # encode image and convert to base64
     def encode_image2base64(self, image_path:str):
@@ -164,18 +174,16 @@ class LLM_Model():
         """
         openai.api_key=os.getenv("OpenAI_API_KEY")
         prompt = self.template.format(question=self.input, Evaluation_metric=self.Evaluation_metrics, Evaluation_metrics_key=self.Evaluation_metrics_key)
+        content= [{"type":"text", "text": prompt}]
         image_base64=self.image_path
+        content=content+ image_base64
         try:
             response=openai.ChatCompletion.create(
                 model=self.model_type,
                 message=[
                     {
                         "role":"User",
-                        "content":[
-                            {"type":"text", "text": prompt},
-                            {"type":"image_url", "image_url":
-                            {"url":f"data:image/png;base64,{image_base64}"}}
-                        ]
+                        "content":content
                     }
                 ] 
             )
@@ -197,24 +205,16 @@ class LLM_Model():
         }
         prompt = self.template.format(question=self.input, Evaluation_metrics=self.Evaluation_metrics ,Evaluation_metrics_key=self.Evaluation_metrics_key)
         #Read and encode the image
+        content = [{"type": "text","text": prompt }]
         image_base64 = self.image_path
-        data_url=f"data:image/png;base64,{image_base64}"
+        content=content+image_base64
    
         messages=[
-    {
-        "role": "user",
-        "content": [
-            {
-                "type": "text",
-                "text": prompt
-            },
-            {
-                "type": "image_url",
-                "image_url": data_url   
-            }
-        ]
-    }
-]       
+                    {
+                        "role": "user",
+                        "content":content
+                    }
+                ]
         try:
             payload = {
                 "model": self.model,
